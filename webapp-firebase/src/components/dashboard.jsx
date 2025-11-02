@@ -21,7 +21,6 @@ export default function Dashboard() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-
         try {
           const q = query(
             collection(db, "students"),
@@ -29,8 +28,7 @@ export default function Dashboard() {
           );
           const querySnapshot = await getDocs(q);
           if (!querySnapshot.empty) {
-            const docSnap = querySnapshot.docs[0];
-            setStudentData(docSnap.data());
+            setStudentData(querySnapshot.docs[0].data());
           }
         } catch (error) {
           console.error("Error fetching student data:", error);
@@ -43,8 +41,12 @@ export default function Dashboard() {
   }, []);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    window.location.href = "/login";
+    try {
+      await signOut(auth);
+      window.location.replace("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
   };
 
   const handleDelete = async () => {
@@ -61,7 +63,7 @@ export default function Dashboard() {
       await deleteDoc(doc(db, "students", uniquePart));
       await deleteUser(auth.currentUser);
       alert("Your account and data have been deleted.");
-      window.location.href = "/";
+      window.location.replace("/");
     } catch (error) {
       console.error("Error deleting account:", error);
       alert("Error deleting account: " + error.message);
@@ -89,8 +91,10 @@ export default function Dashboard() {
       <div className="flex flex-col lg:flex-row">
         {/* Left side: Schedule generator */}
         <div className="w-full lg:w-[65%] p-6 sm:p-8 bg-gradient-to-r from-[#d3f3ff]/40 to-[#fff0a5]/40 flex flex-col items-center justify-center text-center">
-          <Generator classLevel={studentData?.class} />{" "}
-          {/* Pass class info to Generator */}
+          <Generator
+            classLevel={studentData?.class || "9"}
+            userUid={user.uid}
+          />
         </div>
 
         {/* Right side: Student info */}
@@ -99,7 +103,6 @@ export default function Dashboard() {
             showDetails ? "translate-x-0" : "translate-x-full lg:translate-x-0"
           }`}
         >
-          {/* Toggle button for mobile */}
           <div className="lg:hidden mb-4 flex justify-center">
             <button
               onClick={() => setShowDetails(!showDetails)}
@@ -138,7 +141,6 @@ export default function Dashboard() {
                   <strong>Zone:</strong> {studentData.zone}
                 </div>
 
-                {/* Delete Account button */}
                 <button
                   onClick={handleDelete}
                   className="w-full py-2 mt-6 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition"
@@ -146,7 +148,6 @@ export default function Dashboard() {
                   Delete Account
                 </button>
 
-                {/* Logout */}
                 <button
                   onClick={handleLogout}
                   className="w-full py-2 mt-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"

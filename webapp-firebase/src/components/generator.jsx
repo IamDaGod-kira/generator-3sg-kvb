@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import { auth, db } from "../main";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -7,9 +8,7 @@ export default function Generator() {
   const [selectedClass, setSelectedClass] = useState("9");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [user, setUser] = useState(null);
-  const [message, setMessage] = useState("");
 
   const subjects = ["english", "maths", "science", "sst"];
 
@@ -19,10 +18,13 @@ export default function Generator() {
   }, []);
 
   const handleFetchSchedule = async () => {
-    setError("");
-    setMessage("");
     if (!user) {
-      setMessage("You must be logged in to fetch your saved schedule.");
+      Swal.fire({
+        icon: "info",
+        title: "Login Required",
+        text: "You must be logged in to fetch your saved schedule.",
+        confirmButtonColor: "#2563eb",
+      });
       return;
     }
 
@@ -33,27 +35,44 @@ export default function Generator() {
       if (docSnap.exists()) {
         const saved = docSnap.data().schedule || [];
         setResults(saved);
-        setMessage("Fetched saved schedule successfully!");
+        Swal.fire({
+          icon: "success",
+          title: "Fetched Successfully",
+          text: "Your saved schedule has been loaded.",
+          confirmButtonColor: "#16a34a",
+        });
       } else {
-        setMessage("No saved schedule found for this user.");
         setResults([]);
+        Swal.fire({
+          icon: "warning",
+          title: "No Saved Schedule",
+          text: "No saved schedule found for this user.",
+          confirmButtonColor: "#f59e0b",
+        });
       }
     } catch (err) {
       console.error("Error fetching schedule:", err);
-      setError("Failed to fetch schedule. Try again later.");
+      Swal.fire({
+        icon: "error",
+        title: "Fetch Failed",
+        text: "Failed to fetch schedule. Try again later.",
+        confirmButtonColor: "#dc2626",
+      });
     }
   };
 
   const handleGenerateAll = async () => {
     if (!user) {
-      setMessage("Please log in to generate and save schedules.");
+      Swal.fire({
+        icon: "info",
+        title: "Login Required",
+        text: "Please log in to generate and save schedules.",
+        confirmButtonColor: "#2563eb",
+      });
       return;
     }
 
-    setError("");
-    setResults([]);
     setLoading(true);
-    setMessage("");
 
     try {
       const apiKey = import.meta.env.VITE_AIAPI;
@@ -120,10 +139,20 @@ export default function Generator() {
       await setDoc(docRef, { schedule: newResults }, { merge: true });
 
       setResults(newResults);
-      setMessage("New schedule generated and saved successfully!");
+      Swal.fire({
+        icon: "success",
+        title: "Schedule Generated",
+        text: "New schedule has been generated and saved successfully!",
+        confirmButtonColor: "#16a34a",
+      });
     } catch (err) {
       console.error(err);
-      setError(err.message || "Something went wrong.");
+      Swal.fire({
+        icon: "error",
+        title: "Generation Failed",
+        text: err.message || "Something went wrong while generating schedules.",
+        confirmButtonColor: "#dc2626",
+      });
     } finally {
       setLoading(false);
     }
@@ -162,9 +191,6 @@ export default function Generator() {
           Fetch Saved Schedule
         </button>
       </div>
-
-      {message && <p className="text-green-600 font-medium">{message}</p>}
-      {error && <p className="text-red-500 font-medium">{error}</p>}
 
       {results.length > 0 && (
         <div className="space-y-6 mt-6">

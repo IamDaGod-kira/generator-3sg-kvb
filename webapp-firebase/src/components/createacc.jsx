@@ -30,13 +30,10 @@ export default function Createacc() {
         formData.email,
         formData.password,
       );
+      const user = userCredential.user;
 
-      // Use last 4 digits of entered unique ID as document name
-      const uniquePart = formData.uniqueid.slice(-4);
-      const docRef = doc(db, "students", uniquePart);
-
-      // Save user data (including class) in their own document
-      await setDoc(docRef, {
+      // Store user data in Firestore (document name = user.uid)
+      await setDoc(doc(db, "students", user.uid), {
         fullname: formData.fullname,
         email: formData.email,
         phone: formData.phone,
@@ -44,13 +41,13 @@ export default function Createacc() {
         password: formData.password,
         class: formData.class,
         createdAt: new Date().toISOString(),
-        uid: userCredential.user.uid,
+        uid: user.uid,
       });
 
       localStorage.setItem("uniqueid", formData.uniqueid);
 
       alert("Account created successfully!");
-      window.location.href = "/login";
+      window.location.replace("/login");
     } catch (error) {
       console.error("Error creating account:", error);
       alert(error.message);

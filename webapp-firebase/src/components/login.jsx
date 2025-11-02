@@ -13,20 +13,19 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
+import Swal from "sweetalert2";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [uniqueId, setUniqueId] = useState("");
   const [userData, setUserData] = useState(null);
-  const [error, setError] = useState("");
 
   // Detect login state
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         try {
-          // Get user Firestore data by matching email and uniqueId (last 4 digits)
           const q = query(
             collection(db, "students"),
             where("email", "==", currentUser.email),
@@ -36,32 +35,43 @@ export default function Login() {
             const data = qs.docs[0].data();
             setUserData({ ...data, uid: currentUser.uid });
           } else {
-            console.warn("No Firestore record found for user email.");
+            Swal.fire({
+              icon: "warning",
+              title: "No record found",
+              text: "No Firestore record found for this email.",
+              confirmButtonColor: "#2563eb",
+            });
           }
         } catch (err) {
-          console.error("Error fetching user Firestore data:", err);
+          Swal.fire({
+            icon: "error",
+            title: "Error fetching data",
+            text: err.message,
+            confirmButtonColor: "#2563eb",
+          });
         }
       } else {
         setUserData(null);
       }
     });
-
     return () => unsub();
   }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
 
     if (!email || !password || !uniqueId) {
-      setError("Please fill in all fields.");
+      Swal.fire({
+        icon: "warning",
+        title: "Missing fields",
+        text: "Please fill in all fields before logging in.",
+        confirmButtonColor: "#2563eb",
+      });
       return;
     }
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-
-      // Fetch Firestore document by last 4 digits of uniqueId
       const docId = uniqueId.slice(-4);
       const docRef = doc(db, "students", docId);
       const snap = await getDoc(docRef);
@@ -69,21 +79,54 @@ export default function Login() {
       if (snap.exists()) {
         const data = snap.data();
         setUserData({ ...data, uid: auth.currentUser.uid });
+        Swal.fire({
+          icon: "success",
+          title: "Login successful!",
+          text: `Welcome back, ${data.name || "Student"}!`,
+          confirmButtonColor: "#2563eb",
+        });
       } else {
-        setError("No Firestore record found for this Unique ID.");
+        Swal.fire({
+          icon: "error",
+          title: "Unique ID not found",
+          text: "No Firestore record found for this Unique ID.",
+          confirmButtonColor: "#2563eb",
+        });
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError("Invalid credentials or user not found.");
+      Swal.fire({
+        icon: "error",
+        title: "Login failed",
+        text: "Invalid credentials or user not found.",
+        confirmButtonColor: "#2563eb",
+      });
     }
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
-    setUserData(null);
+    const confirmLogout = await Swal.fire({
+      icon: "question",
+      title: "Log out?",
+      text: "Are you sure you want to log out?",
+      showCancelButton: true,
+      confirmButtonText: "Yes, logout",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#dc2626",
+    });
+
+    if (confirmLogout.isConfirmed) {
+      await signOut(auth);
+      setUserData(null);
+      Swal.fire({
+        icon: "success",
+        title: "Logged out",
+        text: "You have been successfully logged out.",
+        confirmButtonColor: "#2563eb",
+      });
+    }
   };
 
-  // If logged in, show user details
   if (userData) {
     return (
       <div className="p-6 bg-white rounded-xl shadow-md w-full max-w-md mx-auto">
@@ -114,7 +157,6 @@ export default function Login() {
     );
   }
 
-  // If not logged in, show login form
   return (
     <div className="p-6 bg-white rounded-xl shadow-md w-full max-w-md mx-auto">
       <h2 className="text-2xl font-bold mb-4 text-center text-blue-800">
@@ -142,8 +184,6 @@ export default function Login() {
           onChange={(e) => setUniqueId(e.target.value)}
           className="w-full p-2 border border-gray-300 rounded"
         />
-
-        {error && <p className="text-red-600 text-sm">{error}</p>}
 
         <button
           type="submit"
