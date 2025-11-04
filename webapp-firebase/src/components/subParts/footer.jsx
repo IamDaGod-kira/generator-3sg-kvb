@@ -24,17 +24,11 @@ export default function Footer() {
 
       {/* Navigation Links */}
       <div className="flex flex-wrap justify-center gap-6 md:gap-10 text-sm md:text-base mb-8">
-        <a href="#home" className="hover:text-[#38bdf8] transition-colors">
+        <a href="/" className="hover:text-[#38bdf8] transition-colors">
           Home
         </a>
-        <a href="#features" className="hover:text-[#38bdf8] transition-colors">
-          Features
-        </a>
-        <a href="#resources" className="hover:text-[#38bdf8] transition-colors">
+        <a href="/resources" className="hover:text-[#38bdf8] transition-colors">
           Resources
-        </a>
-        <a href="#about" className="hover:text-[#38bdf8] transition-colors">
-          About
         </a>
         <a
           href="mailto:mantusantra591@gmail.com"

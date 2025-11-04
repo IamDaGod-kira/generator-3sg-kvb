@@ -193,7 +193,7 @@ export default function Header() {
               href="call.html"
               className="bg-green-400 text-green-700 px-3 sm:px-4 py-2 rounded-full font-bold transition hover:bg-white hover:shadow-md text-sm sm:text-base"
             >
-              Call Us
+              Get Mobile App
             </a>
 
             {user ? (
