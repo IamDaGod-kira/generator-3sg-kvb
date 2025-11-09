@@ -10,6 +10,7 @@ const Createacc = lazy(() => import("./components/createacc"));
 const Dashboard = lazy(() => import("./components/dashboard"));
 const Protected = lazy(() => import("./components/subParts/protected"));
 const Footer = lazy(() => import("./components/subParts/footer"));
+const Companion = lazy(() => import("./components/companion"));
 
 function App() {
   return (
@@ -46,6 +47,16 @@ function App() {
             <Suspense fallback={<Loading />}>
               <Protected>
                 <Dashboard />
+              </Protected>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/companion"
+          element={
+            <Suspense fallback={<Loading />}>
+              <Protected>
+                <Companion />
               </Protected>
             </Suspense>
           }
