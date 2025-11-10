@@ -18,7 +18,7 @@ export default function Companion() {
     setLoading(true);
 
     try {
-      const ref = doc(db, "schedules", shortId);
+      const ref = doc(db, "students", shortId);
       const snap = await getDoc(ref);
 
       if (snap.exists()) {

@@ -9,6 +9,7 @@ export default function Generator() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [uniqueId, setUniqueId] = useState("");
 
   const subjects = ["english", "maths", "science", "sst"];
 
@@ -17,6 +18,7 @@ export default function Generator() {
     return () => unsub();
   }, []);
 
+  // 🔹 Fetch saved schedule
   const handleFetchSchedule = async () => {
     if (!user) {
       Swal.fire({
@@ -28,8 +30,20 @@ export default function Generator() {
       return;
     }
 
+    if (!uniqueId.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Unique ID Required",
+        text: "Please enter your unique ID first.",
+        confirmButtonColor: "#f59e0b",
+      });
+      return;
+    }
+
+    const last4 = uniqueId.slice(-4);
+
     try {
-      const docRef = doc(db, "schedules", user.uid);
+      const docRef = doc(db, "students", last4);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
@@ -38,7 +52,7 @@ export default function Generator() {
         Swal.fire({
           icon: "success",
           title: "Fetched Successfully",
-          text: "Your saved schedule has been loaded.",
+          text: `Loaded schedule for ID ending in ${last4}.`,
           confirmButtonColor: "#16a34a",
         });
       } else {
@@ -61,6 +75,7 @@ export default function Generator() {
     }
   };
 
+  // 🔹 Generate and save all schedules
   const handleGenerateAll = async () => {
     if (!user) {
       Swal.fire({
@@ -72,6 +87,17 @@ export default function Generator() {
       return;
     }
 
+    if (!uniqueId.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Unique ID Required",
+        text: "Please enter your unique ID before generating.",
+        confirmButtonColor: "#f59e0b",
+      });
+      return;
+    }
+
+    const last4 = uniqueId.slice(-4);
     setLoading(true);
 
     try {
@@ -134,15 +160,15 @@ export default function Generator() {
         }
       }
 
-      // Save or update in Firestore
-      const docRef = doc(db, "schedules", user.uid);
+      // 🔹 Save to Firestore in users → last4 → schedule[]
+      const docRef = doc(db, "students", last4);
       await setDoc(docRef, { schedule: newResults }, { merge: true });
 
       setResults(newResults);
       Swal.fire({
         icon: "success",
         title: "Schedule Generated",
-        text: "New schedule has been generated and saved successfully!",
+        text: `Schedule saved successfully under ID ending in ${last4}.`,
         confirmButtonColor: "#16a34a",
       });
     } catch (err) {
@@ -174,6 +200,14 @@ export default function Generator() {
           <option value="9">Class 9</option>
           <option value="10">Class 10</option>
         </select>
+
+        <input
+          type="text"
+          placeholder="Enter Unique ID"
+          value={uniqueId}
+          onChange={(e) => setUniqueId(e.target.value)}
+          className="border rounded p-2 w-48"
+        />
 
         <button
           onClick={handleGenerateAll}
