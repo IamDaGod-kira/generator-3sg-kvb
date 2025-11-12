@@ -32,7 +32,7 @@ export default function Header() {
           {/* Right side: buttons */}
           <div className="flex justify-center sm:justify-end items-center gap-2 mt-4 sm:mt-0">
             <a
-              href="call.html"
+              href="/companion"
               className="bg-green-400 text-green-700 px-3 sm:px-4 py-2 rounded-full font-bold transition hover:bg-white hover:shadow-md text-sm sm:text-base"
             >
               Get Mobile App
