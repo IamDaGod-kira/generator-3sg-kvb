@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mobile-companion",
-    "slug": "mobile-companion",
+    "name": "3sg-companion",
+    "slug": "3sg-companion",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
