@@ -26,6 +26,12 @@
   },
   "private": true,
   "devDependencies": {
+    "@babel/cli": "^7.28.3",
+    "@babel/core": "^7.28.5",
+    "@babel/plugin-transform-private-methods": "^7.27.1",
+    "@babel/preset-env": "^7.28.5",
+    "@babel/preset-react": "^7.28.5",
+    "babel-preset-expo": "^54.0.7",
     "metro-react-native-babel-preset": "^0.77.0"
   }
 }
