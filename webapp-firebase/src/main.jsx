@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_APIKEY,
@@ -25,8 +26,12 @@ export const db = getFirestore(app);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </StrictMode>,
+    <GoogleReCaptchaProvider
+      reCaptchaKey={import.meta.env.VITE_CAPTCHA_SITEKEY}
+    >
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </GoogleReCaptchaProvider>
+  </StrictMode>
 );

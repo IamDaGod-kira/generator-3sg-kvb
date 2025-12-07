@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { auth, db } from "../main";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 export default function Createacc() {
   const [loading, setLoading] = useState(false);
@@ -14,6 +15,8 @@ export default function Createacc() {
     class: "",
   });
 
+  const { executeRecaptcha } = useGoogleReCaptcha(); // <-- IMPORTANT
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -24,18 +27,44 @@ export default function Createacc() {
     setLoading(true);
 
     try {
-      // Create user in Firebase Authentication
+      if (!executeRecaptcha) {
+        alert("Recaptcha not ready");
+        return;
+      }
+
+      // Run invisible reCAPTCHA v3
+      const token = await executeRecaptcha("student_signup");
+
+      // Verify token with backend Cloud Function
+      const verify = await fetch(
+        "https://generator-3sg-kvb.web.app/verifyCaptcha",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        }
+      );
+
+      const result = await verify.json();
+
+      if (!result.success) {
+        alert("Failed CAPTCHA verification");
+        setLoading(false);
+        return;
+      }
+
+      // Create Firebase Authentication user
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
-        formData.password,
+        formData.password
       );
       const user = userCredential.user;
 
-      // Use last 4 digits of the user-entered uniqueid as the document name
+      // Use last 4 digits of uniqueid as the document ID
       const docId = formData.uniqueid.slice(-4);
 
-      // Store user data in Firestore
+      // Store student data in Firestore
       await setDoc(doc(db, "students", docId), {
         fullname: formData.fullname,
         email: formData.email,
@@ -47,7 +76,7 @@ export default function Createacc() {
         uid: user.uid,
       });
 
-      // Save uniqueid locally for reference
+      // Store the uniqueid locally
       localStorage.setItem("uniqueid", formData.uniqueid);
 
       alert("Account created successfully!");
@@ -127,7 +156,7 @@ export default function Createacc() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 mt-2 bg-gradient-to-r from-[#2575fc] to-[#6a11cb] text-white font-bold rounded-lg shadow-md hover:opacity-90 transition disabled:opacity-50"
+            className="w-full py-3 mt-2 bg-linear-to-r from-[#2575fc] to-[#6a11cb] text-white font-bold rounded-lg shadow-md hover:opacity-90 transition disabled:opacity-50"
           >
             {loading ? "Creating Account..." : "Enroll Now"}
           </button>
