@@ -18,16 +18,23 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_MEASUREMENTID,
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
+// IMPORTANT: Avoid reCAPTCHA script loading errors in Vite
+const captchaKey = import.meta.env.VITE_CAPTCHA_SITEKEY;
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <GoogleReCaptchaProvider
-      reCaptchaKey={import.meta.env.VITE_CAPTCHA_SITEKEY}
+      reCaptchaKey={captchaKey}
+      scriptProps={{
+        async: true,
+        defer: true,
+        appendTo: "head",
+      }}
     >
       <BrowserRouter>
         <App />
@@ -35,3 +42,4 @@ createRoot(document.getElementById("root")).render(
     </GoogleReCaptchaProvider>
   </StrictMode>
 );
+
